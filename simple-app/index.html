@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <script src="../../js/fhir-client.js"></script>
+ </head>
+ <body>
+    <h1>Medications for <span id="name"></span></h1>
+
+    <ul id="med_list"></ul>
+
+    <script type="text/javascript">
+    (function () {
+        "use strict";
+
+        FHIR.oauth2.ready(function(smart){
+            var patient = smart.context.patient;
+
+            patient.read().then(function(pt) {
+                document.getElementById('name').innerHTML = pt.name[0].given.join(" ") +" "+ pt.name[0].family.join(" ");
+                
+                patient.MedicationPrescription.search().then(function(prescriptions) {
+                    var med_list = document.getElementById('med_list');
+
+                    prescriptions.forEach(function(prescription){
+                        var meds = prescription.contained;
+                        meds.forEach(function(med){
+                            med_list.innerHTML += "<li> " + med.name + "</li>";
+                        });
+                    });
+
+                });
+            });
+        });
+
+    }());
+    </script>
+ </body>
+</html>

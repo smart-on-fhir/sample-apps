@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+     <title>Sample app</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="fhir-client.js"></script>
+  </head>
+  <body>
+    see console for details
+    <script type="text/javascript">
+        FHIR.oauth2.ready(function(client){
+            $.when(client.context.user.read())
+             .then(function(user){
+                console.log("User", user);
+                console.log("Token Response", client.tokenResponse);
+             });
+        });
+    </script>
+  </body>
+</html>
