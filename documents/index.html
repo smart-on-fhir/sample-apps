@@ -83,7 +83,7 @@
               if (docs.length > 0) {
                 docs.forEach(function(doc){
                     startingpoint=startingpoint.pipe( function() {
-                        return $.when(smart.fetchBinary(doc.fullUrl)).then(function (blob) {
+                        return $.when(smart.fetchBinary(doc.resource.content[0].attachment.url)).then(function (blob) {
                             displayDocument(doc_list, doc.resource.description, blob);
                         });
                     });
