@@ -2,7 +2,7 @@
 <html>
   <head>
       <title>Sample documents viewer app</title>
-      <script src="../../js/fhir-client.js"></script>
+      <script src="node_modules/fhirclient/fhir-client.js"></script>
       <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   </head>
   <body>
@@ -54,7 +54,7 @@
         };
 
         FHIR.oauth2.ready(function(smart){
-          var patient = smart.context.patient;
+          var patient = smart.patient;
 
           patient.read().then(function(pt) {
             
@@ -65,7 +65,7 @@
             if (pt.photo) {
                 $.each(pt.photo, function(idx, photo) {
                     startingpoint=startingpoint.pipe( function() {
-                        return $.when(smart.followBinary(pt, photo.url)).then(function(blob) {
+                        return $.when(smart.fetchBinary(photo.url)).then(function(blob) {
                             displayDocument(photo_list, photo.title, blob);
                         });
                     });
@@ -76,15 +76,15 @@
           });
 
           // Fetch and display all reports and notes for the patient
-          patient.DocumentReference
-            .where.typeIn(['report','note'])
-            .search()
-            .then(function(docs) {
+          patient.api
+            .search({type: "DocumentReference"}) //.where.typeIn(['report','note'])
+            .then(function(r) {
+              var docs = r.data.entry;
               if (docs.length > 0) {
                 docs.forEach(function(doc){
                     startingpoint=startingpoint.pipe( function() {
-                        return $.when(smart.followBinary(doc, doc.location)).then(function (blob) {
-                            displayDocument(doc_list, doc.description, blob);
+                        return $.when(smart.fetchBinary(doc.fullUrl)).then(function (blob) {
+                            displayDocument(doc_list, doc.resource.description, blob);
                         });
                     });
                 });

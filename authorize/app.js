@@ -28,7 +28,8 @@ function initialize (settings) {
 
     setSettings({
         client_id: settings.client_id,
-        scope: settings.scope + " launch:" + urlParam("launch"),
+        scope: settings.scope + " launch",
+        launch_id: urlParam("launch"),
         api_server_uri: urlParam("iss")
     });
     clearAuthToken();
@@ -128,10 +129,14 @@ function authorize () {
             var authorize_uri = null;
             var token_uri = null;
 
-            jQuery.each(r.rest[0].security.extension, function(responseNum, arg){
-              if (arg.url === "http://fhir-registry.smarthealthit.org/Profile/oauth-uris#authorize") {
+            var smartExtension = r.rest[0].security.extension.filter(function (e) {
+               return (e.url === "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
+            });
+
+            smartExtension[0].extension.forEach(function(arg, index, array){
+              if (arg.url === "authorize") {
                 authorize_uri = arg.valueUri;
-              } else if (arg.url === "http://fhir-registry.smarthealthit.org/Profile/oauth-uris#token") {
+              } else if (arg.url === "token") {
                 token_uri = arg.valueUri;
               }
             });
@@ -145,6 +150,8 @@ function authorize () {
                 "response_type=code&"+
                 "scope="+settings.scope+"&"+
                 "redirect_uri="+getRedirectURI() + "&" +
+                "aud=" + encodeURIComponent(settings.api_server_uri) + "&" +
+                "launch=" + settings.launch_id + "&" +
                 "state=" + state;
             
             window.location.href = redirect_to;

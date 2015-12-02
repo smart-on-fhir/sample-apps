@@ -7,7 +7,7 @@
 
 from flask import Flask, request, redirect, session, url_for
 from fhirclient import client
-from fhirclient.models.medicationprescription import MedicationPrescription
+from fhirclient.models.medicationorder import MedicationOrder
 
 settings = {
     'app_id': 'my_web_app'
@@ -28,15 +28,13 @@ def _get_smart():
         return client.FHIRClient(settings=settings, save_func=_save_state)
         
 def _get_prescriptions(smart):
-    return MedicationPrescription.where().patient(smart.patient_id).perform(smart.server)
+    return MedicationOrder.where({'patient': smart.patient_id}).perform(smart.server).entry
 
-def _med_name(prescription):
-    if prescription.medication and prescription.medication.resolved and prescription.medication.resolved.name:
-        return prescription.medication.resolved.name
-    if prescription.medication and prescription.medication.display:
-        return prescription.medication.display
-    if prescription.text and prescription.text.div:
-        return prescription.text.div
+def _med_name(med):
+    if med.text:
+        return med.text
+    if med.coding and med.coding[0].display:
+        return med.coding[0].display
     return "Unnamed Medication(TM)"
 
 @app.route('/fhir-app/launch.html')
@@ -90,9 +88,10 @@ def index():
         
         out += "<ul id='med_list'>\n"
     
-        pres = _get_prescriptions(smart)
-        if pres:
-            out += '\n'.join(['<li>%s</li>'%_med_name(m) for m in pres])
+        prescriptions = _get_prescriptions(smart)
+        for pres in prescriptions:
+            med = pres.resource.medicationCodeableConcept
+            out += '<li>%s</li>\n' % _med_name(med)
     
         out += """
             </ul>

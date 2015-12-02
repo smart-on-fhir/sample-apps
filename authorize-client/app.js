@@ -6,7 +6,7 @@ function urlParam(p) {
   for(var i=0; i<data.length; i++) {
     var item = data[i].split("=");
     if (item[0] === p) {
-      result.push(item[1]);
+      result.push(decodeURIComponent(item[1]));
     }
   }
 
@@ -28,7 +28,8 @@ function initialize (settings) {
 
     setSettings({
         client_id: settings.client_id,
-        scope: settings.scope + " launch:" + urlParam("launch"),
+        scope: settings.scope + " launch",
+        launch_id: urlParam("launch"),
         api_server_uri: urlParam("iss")
     });
     clearAuthToken();
@@ -76,7 +77,8 @@ function authorize () {
     FHIR.oauth2.authorize({
         "client": {
             "client_id": settings.client_id,
-            "scope":  settings.scope
+            "scope":  settings.scope,
+            "launch": settings.launch_id
         },
         "server": settings.api_server_uri
     });
@@ -86,7 +88,7 @@ function getPatientName () {
     var ret = $.Deferred();
     
     FHIR.oauth2.ready(function(smart){
-        var patient = smart.context.patient;
+        var patient = smart.patient;
 
         patient.read()
           .then(function(pt) {
@@ -106,7 +108,7 @@ function getUserName () {
     var ret = $.Deferred();
     
     FHIR.oauth2.ready(function(smart){
-        var user = smart.context.user;
+        var user = smart.user;
 
          $.when(user.read())
           .then(function(pt) {
