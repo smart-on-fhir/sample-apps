@@ -28,6 +28,7 @@ function initialize (settings) {
 
     setSettings({
         client_id: settings.client_id,
+        secret: settings.secret,
         scope: settings.scope + " launch",
         launch_id: urlParam("launch"),
         api_server_uri: urlParam("iss")
@@ -99,17 +100,28 @@ function fetchToken () {
     var state = urlParam("state");
     var code = urlParam("code");
     var params = getSession (state);
-
-    $.ajax({
-        url: params.token_uri,
-        type: 'POST',
-        data: {
+    var data = {
             code: code,
             grant_type: 'authorization_code',
-            redirect_uri: getRedirectURI(),
-            client_id: settings.client_id
-        },
-    }).done(function(res){
+            redirect_uri: getRedirectURI()
+        };
+    var options;
+        
+    if (!settings.secret) {
+        data['client_id'] = settings.client_id;
+    }
+    
+    options = {
+        url: params.token_uri,
+        type: 'POST',
+        data: data
+    };
+    
+    if (settings.secret) {
+        options['headers'] = {'Authorization': 'Basic ' + btoa(settings.client_id + ':' + settings.secret)};
+    }
+    
+    $.ajax(options).done(function(res){
         setAuthToken({
             patient_id: res.patient,
             access_token: res.access_token
