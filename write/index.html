@@ -52,7 +52,7 @@
             };
 
             // Create the patient and then update its active flag to "true"
-			smart.api.create({resource: resource}).done(function(r) {
+            smart.api.create({resource: resource}).done(function(r) {
                 var patient = r.data;
                 patient["active"] = true;
                 smart.api.update({resource: patient}).done(function(r) {
