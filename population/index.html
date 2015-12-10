@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <script src="node_modules/fhirclient/fhir-client.js"></script>
+ </head>
+ <body>
+    <h3>Patients with active medications</h3>	
+    <div id="results"></div>
+    <script type="text/javascript">
+
+    	var patientsData = [];
+    
+        function getName (patient) {
+        	var name = patient.name;
+            if (name && name.length > 0) {
+                return name[0].given.join(" ") +" "+ name[0].family.join(" ");
+            } else {
+                return "deidentified patient";
+            }
+        }
+    
+    	function printDataSet (patients) {
+    		var out = "";
+    		patients.filter(function (p) {
+    			return p.activeMeds;
+    		}).sort(function (p1, p2) {
+    			if (p1.activeMeds !== p2.activeMeds) return p1.activeMeds < p2.activeMeds;
+    			else return p1.name > p2.name;
+    		}).forEach(function(p) {
+    			 out += p.name + " - " + p.activeMeds + " active medications<br/>\n";
+    		});
+    		document.getElementById('results').innerHTML = out;
+    	}
+
+        FHIR.oauth2.ready(function(smart){
+            var api = smart.api;
+
+            function processPatient (patient) {
+                api.fetchAll({type: "MedicationOrder", query: {patient: patient.id, status: "active"}})
+            	   .then(function(meds) {
+            	        patientsData.push ({
+            	            name: getName(patient),
+            	       	    activeMeds: meds.length
+            	        });
+                        printDataSet(patientsData);
+            	    });
+            }
+
+            api.fetchAll({type: "Patient"}).then(function(patients) {
+            	patients.forEach(function(patient) {
+            	    processPatient (patient);
+                });
+            });
+        });
+
+    </script>
+ </body>
+</html>
