@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <script src="node_modules/fhirclient/fhir-client.js"></script>
+ </head>
+ <body>
+    See console for details
+    <script type="text/javascript">
+    (function () {
+        "use strict";
+
+        FHIR.oauth2.ready(function(smart){
+
+            var resource = {
+              "resourceType": "Patient",
+              "id": "12345",
+              "text": {
+                "status": "generated",
+                "div": "<div><p>Test Patient</p></div>"
+              },
+              "identifier": [
+                {
+                  "use": "usual",
+                  "type": {
+                    "coding": [
+                      {
+                        "system": "http://hl7.org/fhir/v2/0203",
+                        "code": "MR",
+                        "display": "Medical record number"
+                      }
+                    ],
+                    "text": "Medical record number"
+                  },
+                  "system": "http://hospital.smarthealthit.org",
+                  "value": "12345"
+                }
+              ],
+              "active": false,
+              "name": [
+                {
+                  "use": "official",
+                  "family": [
+                    "Patient"
+                  ],
+                  "given": [
+                    "Test"
+                  ]
+                }
+              ],
+              "gender": "female",
+              "birthDate": "2007-03-20",
+            };
+
+            // Create the patient and then update its active flag to "true"
+			smart.api.create({resource: resource}).done(function(r) {
+                var patient = r.data;
+                patient["active"] = true;
+                smart.api.update({resource: patient}).done(function(r) {
+                    var out = JSON.stringify(r.data,null,"   ");
+                    console.log ("Now we have the following patient in the FHIR server:");
+                    console.log (out);
+                });
+            });
+
+        });
+
+    }());
+    </script>
+ </body>
+</html>
