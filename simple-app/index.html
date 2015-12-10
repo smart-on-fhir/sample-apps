@@ -9,8 +9,6 @@
     <ul id="med_list"></ul>
 
     <script type="text/javascript">
-    (function () {
-        "use strict";
         
         function getName (medication) {
             if (medication.text) {
@@ -23,22 +21,29 @@
         }
 
         FHIR.oauth2.ready(function(smart){
+        	var name;
             var patient = smart.patient;
 
             patient.read().then(function(pt) {
-                document.getElementById('name').innerHTML = pt.name[0].given.join(" ") +" "+ pt.name[0].family.join(" ");
+                if (pt.name && pt.name.length > 0) {
+                	name = pt.name[0].given.join(" ") +" "+ pt.name[0].family.join(" ");
+            	} else {
+            		name = "anonymous";
+            	}
+                document.getElementById('name').innerHTML = name;
                 
                 patient.api.search({type: "MedicationOrder"}).then(function(prescriptions) {
-              	   var med_list = document.getElementById('med_list');
-                   prescriptions.data.entry.forEach(function(prescription){
-                      var med = prescription.resource.medicationCodeableConcept;
-                      med_list.innerHTML += "<li> " + getName(med) + "</li>";
-                   });
+              	   if (prescriptions.data.entry) {
+              	       var med_list = document.getElementById('med_list');
+                       prescriptions.data.entry.forEach(function(prescription){
+                          var med = prescription.resource.medicationCodeableConcept;
+                          med_list.innerHTML += "<li> " + getName(med) + "</li>";
+                       });
+                   }
                 });
             });
         });
 
-    }());
     </script>
  </body>
 </html>
