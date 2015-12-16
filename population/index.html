@@ -5,7 +5,7 @@
  </head>
  <body>
     <h3>Patients with active medications</h3>	
-    <div id="results"></div>
+    <div id="results">loading...</div>
     <script type="text/javascript">
 
     	var patientsData = [];
@@ -24,8 +24,8 @@
     		patients.filter(function (p) {
     			return p.activeMeds;
     		}).sort(function (p1, p2) {
-    			if (p1.activeMeds !== p2.activeMeds) return p1.activeMeds < p2.activeMeds;
-    			else return p1.name > p2.name;
+    			if (p1.activeMeds !== p2.activeMeds) return p2.activeMeds - p1.activeMeds;
+    			else return (p1.name < p2.name)?-1:1;
     		}).forEach(function(p) {
     			 out += p.name + " - " + p.activeMeds + " active medications<br/>\n";
     		});
@@ -35,6 +35,15 @@
         FHIR.oauth2.ready(function(smart){
             var api = smart.api;
 
+			var queue = [function() {printDataSet(patientsData)}];
+			var length;
+			
+			function next() {
+				progress = Math.round(100 - queue.length*100.0/length);
+				document.getElementById('results').innerHTML = "progress: " + progress + "%";
+				(queue.pop())();
+			}
+
             function processPatient (patient) {
                 api.fetchAll({type: "MedicationOrder", query: {patient: patient.id, status: "active"}})
             	   .then(function(meds) {
@@ -42,14 +51,16 @@
             	            name: getName(patient),
             	       	    activeMeds: meds.length
             	        });
-                        printDataSet(patientsData);
+            	        next();
             	    });
             }
 
             api.fetchAll({type: "Patient"}).then(function(patients) {
             	patients.forEach(function(patient) {
-            	    processPatient (patient);
+            	    queue.push(function() {processPatient (patient)});
                 });
+                length = queue.length;
+                next();
             });
         });
 
