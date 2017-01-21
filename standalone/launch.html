@@ -4,8 +4,11 @@
     <script src="node_modules/fhirclient/fhir-client.js"></script>
     <script>
       FHIR.oauth2.authorize({
-        "client_id": "my_web_app",
-        "scope":  "patient/*.read launch/patient"
+          "client": {
+              "client_id": "my_web_app",
+              "scope":  "patient/*.read launch/patient"
+          },
+          "server": "https://fhir-api-dstu2.smarthealthit.org"
       });
     </script>
   </head>
