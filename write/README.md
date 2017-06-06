@@ -28,7 +28,6 @@ and `Register New App Manually` using the following data:
     App Launch URI    : http://127.0.0.1:9090/launch.html
     App Redirect URIs : http://127.0.0.1:9090
     Patient Scoped App: false (unchecked)
-    "scope":  "user/*.*"
 
 When you save the app new `Client Id` will be presented to you. Copy that ClientID,
 open the file `launch.html` and replace the old id (`my_web_app`) with the new one.
