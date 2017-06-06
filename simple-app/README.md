@@ -21,7 +21,7 @@ You should see something like
 You can stop the server if needed using <kbd>Ctrl+C</kbd>.
 
 Now go the sandbox at https://sandbox.smarthealthit.org/smartdstu2/#/manage-apps
-and `Register New App Manually" using the following data:
+and `Register New App Manually` using the following data:
 
     App Type          : Public Client
     App Name          : Whatever
