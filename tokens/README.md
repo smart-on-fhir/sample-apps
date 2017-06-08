@@ -1,4 +1,4 @@
-# Writing to the Fhir Server
+# Tokens
 
 This is a simple app that shows how to access the current user (which might be
 a Physician, Patient or RelatedPerson). Please see the code for details.
