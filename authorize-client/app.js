@@ -36,7 +36,7 @@ function initialize(settings) {
 }
 
 function completeAuth() {
-    FHIR.oauth2.ready(refreshApp);
+    FHIR.oauth2.ready().then(refreshApp);
 }
 
 function writeData (key, data) {
@@ -60,11 +60,20 @@ function setSettings(data) {
 }
 
 function hasAuthToken() {
-    return sessionStorage.tokenResponse !== undefined;
+    var smartKey = readData("SMART_KEY");
+    var state = readData(smartKey);
+
+    return (typeof state === 'object') && (state.tokenResponse !== undefined);
 }
 
 function clearAuthToken() {
-    delete sessionStorage.tokenResponse;
+    var smartKey = readData("SMART_KEY");
+    var state = readData(smartKey);
+
+    if(typeof state === 'object') {
+        delete state.tokenResponse
+        writeData(smartKey, state)
+    }
 }
 
 function getHumanName(name) {
@@ -75,23 +84,23 @@ function authorize() {
     var settings = getSettings();
 
     FHIR.oauth2.authorize({
-        "client": {
-            "client_id": settings.client_id,
-            "scope"    : settings.scope,
-            "launch"   : settings.launch_id
-        },
-        "server": settings.api_server_uri
+        "client_id": settings.client_id,
+        "scope"    : settings.scope,
+        "launch"   : settings.launch_id,
+        "iss"      : settings.api_server_uri
     });
 }
 
 function fetchPatientName () {
     var ret = $.Deferred();
 
-    FHIR.oauth2.ready(function(smart) {
-        var patient = smart.patient;
-        patient.read().then(function(pt) {
-            ret.resolve(getHumanName(pt.name[0]));
-        }).fail(function() {
+    FHIR.oauth2.ready()
+    .then(function(smart) {
+        smart.patient.read()
+        .then(function(patient) {
+            ret.resolve(getHumanName(patient.name[0]))
+        })
+        .catch(function(e) {
             ret.reject("Could not fetch patient name");
         });
     });
@@ -102,11 +111,9 @@ function fetchPatientName () {
 function getUserName() {
     var ret = $.Deferred();
 
-    FHIR.oauth2.ready(function(smart){
-        var user = smart.user;
-        
-        // smart.userId = "Patient/" + smart.userId
-        $.when(user.read())
+    FHIR.oauth2.ready()
+    .then(function(smart){    
+        smart.user.read()
         .then(function(pt) {
             if (pt) {
                 var name;
@@ -124,7 +131,7 @@ function getUserName() {
                 ret.resolve(pt);
             }
         })
-        .fail(function(error) {
+        .catch(function(error) {
             window.SMART = smart
             console.log(smart)
             ret.reject("Could not fetch user name: " + error);
